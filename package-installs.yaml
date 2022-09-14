@@ -1,0 +1,37 @@
+- hosts: localhost
+  become: yes
+  gather_facts: no
+
+  tasks:
+
+  - name: Dist upgrade
+    ansible.builtin.apt:
+      update_cache: yes
+      upgrade: dist
+
+  - name: Uninstall packages
+    ansible.builtin.apt:
+      state: absent
+      pkg:
+
+  - name: Auto remove un-needed packages
+    ansible.builtin.apt:
+      autoremove: yes
+
+  - name: Auto clean
+    ansible.builtin.apt:
+      autoclean: yes
+
+  - name: Install Standard Packages
+    ansible.builtin.apt:
+      state: present
+      pkg:
+      - vim
+      - fzf
+      - chromium-browser
+
+  - name: Install Chrome (can't do this as it's only amd64, NOT arm64)
+    ansible.builtin.include_tasks: 
+      file: softwares/chromium.yaml
+    when: 1=0
+  

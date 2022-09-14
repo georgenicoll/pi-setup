@@ -1,0 +1,13 @@
+- hosts: localhost
+  become: yes
+  gather_facts: no
+
+  tasks:
+  
+  - name: Add wifi region
+    ansible.builtin.lineinfile:
+      path: /etc/default/crda
+      state: present
+      create: yes
+      line: GB
+      regexp: '^GB$'

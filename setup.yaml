@@ -1,0 +1,11 @@
+---
+
+- hosts: localhost
+  gather_facts: no
+
+- name: Run basic setup
+  ansible.builtin.import_playbook: basic-setup.yaml
+
+- name: Run package installs
+  ansible.builtin.import_playbook: package-installs.yaml
+
