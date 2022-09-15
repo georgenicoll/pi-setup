@@ -13,6 +13,7 @@
     ansible.builtin.apt:
       state: absent
       pkg:
+      - indicator-multiload
 
   - name: Auto remove un-needed packages
     ansible.builtin.apt:
@@ -33,5 +34,15 @@
   - name: Install Chrome (can't do this as it's only amd64, NOT arm64)
     ansible.builtin.include_tasks: 
       file: softwares/chromium.yaml
-    when: 1=0
+    when: no
+
+  - name: Install VSCode
+    ansible.builtin.include_tasks:
+      file: softwares/vscode.yaml
+    when: no
   
+  - name: Install i3
+    ansible.builtin.include_tasks:
+      file: softwares/i3.yaml
+    when: yes
+      

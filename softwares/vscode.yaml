@@ -1,0 +1,16 @@
+- name: Download vscode deb
+  ansible.builtin.get_url:
+    url: https://code.visualstudio.com/sha/download?build=stable&os=linux-deb-arm64
+    dest: /tmp
+    force: no
+  register: vscode_download_result
+
+- name: Output Download Result
+  ansible.builtin.debug:
+    var: vscode_download_result
+
+- name: Install vscode
+  ansible.builtin.apt:
+    deb: "{{ vscode_download_result.dest }}"
+    state: present
+
