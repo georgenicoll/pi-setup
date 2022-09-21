@@ -14,6 +14,8 @@
       state: absent
       pkg:
       - indicator-multiload
+      - chromium-browser
+      - firefox
 
   - name: Auto remove un-needed packages
     ansible.builtin.apt:
@@ -29,7 +31,6 @@
       pkg:
       - vim
       - fzf
-      - chromium-browser
 
   - name: Install Chrome (can't do this as it's only amd64, NOT arm64)
     ansible.builtin.include_tasks: 
@@ -45,4 +46,19 @@
     ansible.builtin.include_tasks:
       file: softwares/i3.yaml
     when: yes
+
+  - name: Install nix
+    ansible.builtin.include_tasks:
+      file: softwares/nix.yaml
+    when: yes
       
+  - name: Install nix packages
+    ansible.builtin.include_tasks:
+      file: softwares/nix-packages.yaml
+    when: yes
+
+  - name: Add Chromium sync workaround
+    ansible.builtin.include_tasks:
+      file: softwares/chromium-sync-workaround.yaml
+    when: yes
+

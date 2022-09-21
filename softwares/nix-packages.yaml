@@ -1,0 +1,29 @@
+- name: nix packages
+  become: no
+  block:
+
+    - name: update channel
+      ansible.builtin.shell:
+        cmd: nix-channel --update
+
+    - name: uninstall packages
+      ansible.builtin.shell:
+        cmd: nix-env -e {{ item }}
+      loop:
+        - non-existant-package
+
+    - name: install packages
+      ansible.builtin.shell:
+        cmd: NIXPKGS_ALLOW_UNFREE=1 nix-env -iA {{ item  }}
+      loop:
+        - nixpkgs.firefox
+        - nixpkgs.chromium
+
+    - name: update all
+      ansible.builtin.shell:
+        cmd: nix-env -u
+      when: no
+
+    - name: garbage collect older than 60d
+      ansible.builtin.shell:
+        cmd: nix-collect-garbage --delete-older-than 60d

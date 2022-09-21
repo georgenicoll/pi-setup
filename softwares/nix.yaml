@@ -1,0 +1,26 @@
+- name: See whether nix is available
+  become: no
+  ansible.builtin.shell:
+    cmd: which nix-env || echo ""
+  register: which_nix_env
+
+- name: nix not installed
+  when: which_nix_env.stdout == ""
+  become: no
+  delegate_to: localhost
+  block:
+    - name: Make sure there is a ~/nix directory
+      ansible.builtin.file:
+        path: ~/nix
+        state: directory
+
+    - name: Download nix install script to ~/nix
+      ansible.builtin.get_url: 
+        url: https://nixos.org/nix/install
+        dest: ~/nix/install.script
+
+    - name: Fail - needs manual install
+      ansible.builtin.fail:
+        msg: Please install nix by running 'sh <(cat ~/nix/install.script) --daemon' and then restarting the terminal
+
+

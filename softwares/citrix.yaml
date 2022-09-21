@@ -1,0 +1,10 @@
+- name: Get citrix deb
+  ansible.builtin.get_url:
+    url: https://downloads.citrix.com/21267/icaclient_22.9.0.14_armhf.deb?__gda__=exp=1663804675~acl=/*~hmac=b8ced1bc8088fe495030648808b5fab1a148eca79012570f6c3b94f7e536dbae
+    dest: /tmp
+  register: citrix_download
+
+- name: Install Citrix
+  ansible.builtin.apt:
+    deb: "{{ citrix_download.dest }}"
+
