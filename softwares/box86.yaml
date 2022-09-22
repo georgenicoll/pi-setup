@@ -1,0 +1,60 @@
+#See https://pimylifeup.com/raspberry-pi-x86/
+- name: Dependencies for box86
+  ansible.builtin.apt:
+    pkg:
+    - gcc-arm-linux-gnueabihf
+    - libc6:armhf
+    - libncurses5:armhf
+    - libstdc++6:armhf
+
+- name: box86 tasks - these can take a long time!
+  become: no
+  delegate_to: localhost
+  block:
+
+    - name: Capture user directory
+      ansible.builtin.shell:
+        chdir: ~
+        cmd: pwd
+      register: pwd_output
+
+    - name: Create box86 directory
+      ansible.builtin.file:
+        dest: ~/box86
+        state: directory
+
+    - name: Checkout box86 repo
+      ansible.builtin.git:
+        repo: https://github.com/ptitSeb/box86
+        dest: ~/box86
+        version: v0.2.6
+
+    - name: Make build directory
+      ansible.builtin.file:
+        dest: ~/box86/build
+        state: directory
+
+    - name: Run cmake on box86
+      ansible.builtin.shell:
+        chdir: ~/box86/build
+        cmd: cmake .. -DRPI4ARM64=1 -DCMAKE_BUILD_TYPE=RelWithDebInfo
+
+    - name: make box86
+      ansible.builtin.shell:
+        chdir: ~/box86/build
+        cmd: make -j2
+      async: 3600
+      poll: 30
+
+    - name: install box86
+      become: yes
+      ansible.builtin.shell:
+        chdir: "{{ pwd_output.stdout }}/box86/build"
+        cmd: make install
+
+    - name: restart systemd-binfmt
+      become: yes
+      ansible.builtin.service:
+        name: systemd-binfmt
+        state: restarted
+

@@ -1,0 +1,52 @@
+#See https://pimylifeup.com/raspberry-pi-x86/
+- name: box64 tasks - these can take a long time!
+  become: no
+  delegate_to: localhost
+  block:
+
+    - name: Capture user home
+      ansible.builtin.shell:
+        chdir: ~
+        cmd: pwd
+      register: pwd_output
+
+    - name: Create box64 directory
+      ansible.builtin.file:
+        dest: ~/box64
+        state: directory
+
+    - name: Checkout box64 repo
+      ansible.builtin.git:
+        repo: https://github.com/ptitSeb/box64
+        dest: ~/box64
+        version: v0.1.8
+
+    - name: Make build directory
+      ansible.builtin.file:
+        dest: ~/box64/build
+        state: directory
+
+    - name: Run cmake on box64
+      ansible.builtin.shell:
+        chdir: ~/box64/build
+        cmd: cmake .. -DRPI4ARM64=1 -DCMAKE_BUILD_TYPE=RelWithDebInfo
+
+    - name: make box64
+      ansible.builtin.shell:
+        chdir: ~/box64/build
+        cmd: make -j2
+      async: 3600
+      poll: 30
+
+    - name: install box64
+      become: yes
+      ansible.builtin.shell:
+        chdir: "{{ pwd_output.stdout }}/box64/build"
+        cmd: make install
+
+    - name: restart systemd-binfmt
+      become: yes
+      ansible.builtin.service:
+        name: systemd-binfmt
+        state: restarted
+

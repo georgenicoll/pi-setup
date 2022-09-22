@@ -35,10 +35,8 @@
       pkg:
       - vim
       - fzf
-      - libc6:armhf
-      - libsecret-1-0:armhf
-      - libsecret-common:armhf
-      - libxaw7:armhf
+      - build-essential
+      - cmake
 
   - name: Install Chrome (can't do this as it's only amd64, NOT arm64)
     ansible.builtin.include_tasks: 
@@ -74,4 +72,14 @@
     ansible.builtin.include_tasks:
       file: softwares/citrix.yaml
     when: yes
+
+  - name: Build & Install box86
+    ansible.builtin.include_tasks:
+      file: softwares/box86.yaml
+    when: no
+
+  - name: Build & Install box64
+    ansible.builtin.include_tasks:
+      file: softwares/box64.yaml
+    when: no
 

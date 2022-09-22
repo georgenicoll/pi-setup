@@ -1,6 +1,39 @@
+- name: Citrix deps
+  ansible.builtin.apt:
+    state: present
+    pkg:
+      - libc6:armhf
+      - libice6:armhf
+      - libgtk2.0-0:armhf
+      - libsm6:armhf
+      - libx11-6:armhf
+      - libxext6:armhf
+      - libxmu6:armhf
+      - libxpm4:armhf
+      - libasound2:armhf
+      - libstdc++6:armhf
+      - libidn12:armhf #deb sep is libidn11 but ubuntu 22.04 has this
+      - zlib1g:armhf
+      - libglib2.0-0:armhf
+      - libgstreamer-plugins-base1.0-0:armhf
+      - libgstreamer1.0-0:armhf
+      - libspeex1:armhf
+      - libvorbis0a:armhf
+      - libvorbisenc2:armhf
+      - gstreamer1.0-libav:armhf
+      - gstreamer1.0-plugins-bad:armhf
+      - libwebkit2gtk-4.0-37:armhf
+      - pulseaudio:armhf
+      - libsecret-1-0:armhf
+      - libsecret-common:armhf
+      - libxaw7:armhf
+
 - name: Citrix Client
   become: no
   delegate_to: localhost
+  vars:
+    citrix_file: linuxarmhf-22.7.0.20.tar.gz
+    install_instructions: https://kangaroobyte.com/how-to-install-the-citrix-client-on-ubuntu-22-04-20220516-265/
   block:
 
     - name: Ensure citrix directory
@@ -8,14 +41,26 @@
         path: ~/citrix
         state: directory
 
+    - name: Stat citrix tar.gz
+      ansible.builtin.stat:
+        path: ~/citrix/{{ citrix_file }}
+      register: existing_file
+
     - name: Get citrix tar.gz
       ansible.builtin.get_url:
-        url: "https://downloads.citrix.com/21035/linuxarmhf-22.7.0.20.tar.gz?__gda__=exp=1663807798~acl=/*~hmac=10a4982c9fff628cd1906c76d5aa018b459aa6ddc5c18c11f130380482f1ade3"
+        url: "https://downloads.citrix.com/21035/{{ citrix_file }}?__gda__=exp=1663807798~acl=/*~hmac=10a4982c9fff628cd1906c76d5aa018b459aa6ddc5c18c11f130380482f1ade3"
         checksum: "sha256:6b1b356a52d7c395223d8a44fa64fc3e8b3ce58a25348721a627001bace48b0f"
         dest: ~/citrix
       register: citrix_download
+      when: "not existing_file.stat.exists"
 
     - name: Output message about citrix
+      ansible.builtin.fail:
+        msg: "Now follow the instructions here: {{ install_instructions }} to install the downloaded citrix tar.gz: {{ citrix_download.dest }}"
+      when: "not existing_file.stat.exists"
+
+    - name: Output other message about citrix
       ansible.builtin.debug:
-        msg: "Now follow the instructions here: https://kangaroobyte.com/how-to-install-the-citrix-client-on-ubuntu-22-04-20220516-265/ to install the downloaded citrix tar.gz: {{ citrix_download.dest }}"
+        msg: "~/citrix/{{ citrix_file }} exists therefore this script assumes citrix is already installed.  If not, follow the instructions here: {{ install_instructions }}"
+      when: "existing_file.stat.exists"
 
