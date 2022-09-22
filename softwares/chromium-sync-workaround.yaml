@@ -9,7 +9,7 @@
     - name: Add oauth2-client-id
       ansible.builtin.lineinfile:
         path: ~/.config/chromium-flags.conf
-        line: --oauth2-client-id=77185425430.apps.googleusercontent.com
+        line: --oauth2-client-id=see-link
         regexp: ^--oauth2-client-id=.*
         state: present
         create: yes
@@ -17,7 +17,7 @@
     - name: Add oauth2-client-secret
       ansible.builtin.lineinfile:
         path: ~/.config/chromium-flags.conf
-        line: --oauth2-client-secret=OTJgUOQcT7lO7GsGZq2G4IlT
+        line: --oauth2-client-secret=see-link
         regexp: ^--oauth2-client-secret=.*
         state: present
         create: yes

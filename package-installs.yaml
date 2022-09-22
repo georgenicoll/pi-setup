@@ -4,6 +4,10 @@
 
   tasks:
 
+  - name: Adding dpkg armhf architecture
+    ansible.builtin.shell:
+      cmd: dpkg --add-architecture armhf
+
   - name: Dist upgrade
     ansible.builtin.apt:
       update_cache: yes
@@ -31,6 +35,10 @@
       pkg:
       - vim
       - fzf
+      - libc6:armhf
+      - libsecret-1-0:armhf
+      - libsecret-common:armhf
+      - libxaw7:armhf
 
   - name: Install Chrome (can't do this as it's only amd64, NOT arm64)
     ansible.builtin.include_tasks: 
@@ -60,5 +68,10 @@
   - name: Add Chromium sync workaround
     ansible.builtin.include_tasks:
       file: softwares/chromium-sync-workaround.yaml
+    when: no #Not working, chromium doesn't sync with this
+
+  - name: Add Citrix
+    ansible.builtin.include_tasks:
+      file: softwares/citrix.yaml
     when: yes
 

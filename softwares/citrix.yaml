@@ -1,10 +1,21 @@
-- name: Get citrix deb
-  ansible.builtin.get_url:
-    url: https://downloads.citrix.com/21267/icaclient_22.9.0.14_armhf.deb?__gda__=exp=1663804675~acl=/*~hmac=b8ced1bc8088fe495030648808b5fab1a148eca79012570f6c3b94f7e536dbae
-    dest: /tmp
-  register: citrix_download
+- name: Citrix Client
+  become: no
+  delegate_to: localhost
+  block:
 
-- name: Install Citrix
-  ansible.builtin.apt:
-    deb: "{{ citrix_download.dest }}"
+    - name: Ensure citrix directory
+      ansible.builtin.file:
+        path: ~/citrix
+        state: directory
+
+    - name: Get citrix tar.gz
+      ansible.builtin.get_url:
+        url: "https://downloads.citrix.com/21035/linuxarmhf-22.7.0.20.tar.gz?__gda__=exp=1663807798~acl=/*~hmac=10a4982c9fff628cd1906c76d5aa018b459aa6ddc5c18c11f130380482f1ade3"
+        checksum: "sha256:6b1b356a52d7c395223d8a44fa64fc3e8b3ce58a25348721a627001bace48b0f"
+        dest: ~/citrix
+      register: citrix_download
+
+    - name: Output message about citrix
+      ansible.builtin.debug:
+        msg: "Now follow the instructions here: https://kangaroobyte.com/how-to-install-the-citrix-client-on-ubuntu-22-04-20220516-265/ to install the downloaded citrix tar.gz: {{ citrix_download.dest }}"
 
