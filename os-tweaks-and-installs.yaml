@@ -96,5 +96,5 @@
   - name: Zoom
     ansible.builtin.include_tasks:
       file: softwares/zoom.yaml
-    when: no
+    when: yes
 

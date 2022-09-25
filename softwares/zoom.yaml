@@ -13,9 +13,12 @@
     - libxcb-keysyms1:armhf
     - libxtst6
     - libxtst6:armhf
+    - libcanberra-gtk3-module
+    - libcanberra-gtk3-module:armhf
 
-- name: Install Zoom
+- name: Install Zoom (Enable to download and install locally)
   become: no
+  when: no
   delegate_to: localhost
   vars:
     # zoom_arch: zoom_x86_64
@@ -27,12 +30,14 @@
       [Desktop Entry]
       Encoding=UTF-8
       Name=Zoom (Ansible Managed)
-      Exec={{ home_directory.stdout }}/zoom/{{ zoom_arch }}/zoom/zoom
-      Icon=zoom
+      Exec={{ home_directory.stdout }}/zoom/{{ zoom_arch }}/zoom/zoom %U
+      Icon={{ home_directory.stdout }}/.local/share/applications/zoom.png
       Type=Application
       Terminal=false
-      Categories=Communication;Telephony;
-      MimeType=zoom
+      Categories=Network;Application;
+      MimeType=x-scheme-handler/zoommtg;x-scheme-handler/zoomus;x-scheme-handler/tel;x-scheme-handler/callto;x-scheme-handler/zoomphonecall;application/x-zoom
+      StartupWMClass=zoom
+      X-KDE-Protocols=zoommtg;zoomus;tel;callto;zoomphonecall;
 
   block:
 
