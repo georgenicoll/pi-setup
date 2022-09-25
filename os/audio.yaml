@@ -1,0 +1,49 @@
+# and https://gitlab.freedesktop.org/pipewire/pipewire/-/issues/2172
+
+- name: Capture user
+  become: no
+  ansible.builtin.shell:
+    cmd: echo $USER
+  register: the_user
+
+- name: Remove unwanted audio packages
+  ansible.builtin.apt:
+    state: absent
+    pkg:
+      - pulseaudio
+      - pipewire-media-session
+
+- name: Add wanted audio packages
+  ansible.builtin.apt:
+    state: present
+    pkg:
+      - pipewire
+      - pipewire-pulse
+      - pulseaudio-utils
+      - wireplumber
+      - pavucontrol
+      - pasystray
+
+- name: Add audio params for kernel
+  when: no
+  block:
+    - name: Add hdmi_drive
+      ansible.builtin.lineinfile:
+        path: /boot/firmware/usercfg.txt
+        create: true
+        state: present
+        line: 'hdmi_drive=2'
+        regexp: '^hdmi_drive=2'
+    - name: Add dtparam=audio=on
+      ansible.builtin.lineinfile:
+        path: /boot/firmware/usercfg.txt
+        create: true
+        state: present
+        line: 'dtparam=audio=on'
+        regexp: '^dtparam=audio=on'
+
+- name: Add user to audio group
+  when: no
+  ansible.builtin.shell:
+    cmd: usermod -a -G audio {{ the_user.stdout }}
+

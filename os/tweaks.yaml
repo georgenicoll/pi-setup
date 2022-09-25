@@ -1,0 +1,20 @@
+# See https://waldorf.waveform.org.uk/2020/ubuntu-desktops-on-the-pi.html
+# and https://www.dedoimedo.com/computers/rpi4-ubuntu-mate-audio.html
+
+- name: Capture user
+  become: no
+  ansible.builtin.shell:
+    cmd: echo $USER
+  register: the_user
+
+- name: Ensure packages required by tweaks are installed
+  ansible.builtin.apt:
+    state: present
+    pkg:
+    - grub2-common
+    - iw
+
+- name: Set the Wifi Region
+  ansible.builtin.shell:
+    cmd: iw reg set GB
+

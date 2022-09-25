@@ -4,6 +4,14 @@
 
   tasks:
 
+  - name: Make OS Tweaks
+    ansible.builtin.include_tasks:
+      file: os/tweaks.yaml
+
+  - name: Make Audio Tweaks
+    ansible.builtin.include_tasks:
+      file: os/audio.yaml
+
   - name: Adding dpkg armhf architecture
     ansible.builtin.shell:
       cmd: dpkg --add-architecture armhf
@@ -37,6 +45,8 @@
       - fzf
       - build-essential
       - cmake
+      - pi-bluetooth
+      - raspi-config
 
   - name: Install Chrome (can't do this as it's only amd64, NOT arm64)
     ansible.builtin.include_tasks: 
@@ -81,5 +91,10 @@
   - name: Build & Install box64
     ansible.builtin.include_tasks:
       file: softwares/box64.yaml
+    when: no
+
+  - name: Zoom
+    ansible.builtin.include_tasks:
+      file: softwares/zoom.yaml
     when: no
 

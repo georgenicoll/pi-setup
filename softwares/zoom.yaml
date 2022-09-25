@@ -1,0 +1,75 @@
+# See instructions at: https://pimylifeup.com/raspberry-pi-zoom/
+- name: Install Zoom Deps
+  ansible.builtin.apt:
+    state: present
+    pkg:
+    - libxcb-xtest0
+    - libxcb-xtest0:armhf
+    - libxcb-shape0
+    - libxcb-shape0:armhf
+    - libxcb-image0
+    - libxcb-image0:armhf
+    - libxcb-keysyms1
+    - libxcb-keysyms1:armhf
+    - libxtst6
+    - libxtst6:armhf
+
+- name: Install Zoom
+  become: no
+  delegate_to: localhost
+  vars:
+    # zoom_arch: zoom_x86_64
+    # zoom_version: 5.11.10.4400
+    zoom_arch: zoom_i686
+    zoom_version: 5.4.53391.1108
+    desktop_file: ~/.local/share/applications
+    desktop_contents: |-
+      [Desktop Entry]
+      Encoding=UTF-8
+      Name=Zoom (Ansible Managed)
+      Exec={{ home_directory.stdout }}/zoom/{{ zoom_arch }}/zoom/zoom
+      Icon=zoom
+      Type=Application
+      Terminal=false
+      Categories=Communication;Telephony;
+      MimeType=zoom
+
+  block:
+
+    - name: Get home directory
+      ansible.builtin.shell:
+        chdir: ~
+        cmd: pwd
+      register: home_directory
+
+    - name: Make zoom directory
+      ansible.builtin.file:
+        state: directory
+        dest: ~/zoom
+
+    - name: Download zoom tar
+      ansible.builtin.get_url:
+        url: https://zoom.us/client/{{ zoom_version }}/{{ zoom_arch }}.tar.xz
+        dest: ~/zoom
+
+    - name: Remove extraction directory
+      ansible.builtin.file:
+        state: absent
+        dest: ~/zoom/{{ zoom_arch }}
+
+    - name: Make extraction directory
+      ansible.builtin.file:
+        state: directory
+        dest: ~/zoom/{{ zoom_arch }}
+
+    - name: Extract zoom tar
+      ansible.builtin.unarchive:
+        src: ~/zoom/{{ zoom_arch }}.tar.xz
+        dest: ~/zoom/{{ zoom_arch }}
+
+    - name: Generate Zoom Desktop file
+      ansible.builtin.copy:
+        content: "{{ desktop_contents }}"
+        dest: "~/.local/share/applications/zoom.desktop"
+        force: yes
+

@@ -23,7 +23,6 @@
       - gstreamer1.0-libav:armhf
       - gstreamer1.0-plugins-bad:armhf
       - libwebkit2gtk-4.0-37:armhf
-      - pulseaudio:armhf
       - libsecret-1-0:armhf
       - libsecret-common:armhf
       - libxaw7:armhf
