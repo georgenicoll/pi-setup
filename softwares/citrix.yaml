@@ -60,6 +60,21 @@
 
     - name: Output other message about citrix
       ansible.builtin.debug:
-        msg: "~/citrix/{{ citrix_file }} exists therefore this script assumes citrix is already installed.  If not, follow the instructions here: {{ install_instructions }}"
+        msg: "~/citrix/{{ citrix_file }} exists therefore this script assumes citrix is already installed.  If not, follow the instructions here: {{ install_instructions }}.  Following lines will fail if citrix is not installed in ~/ICAClient"
       when: "existing_file.stat.exists"
+
+    # See: https://askubuntu.com/questions/1311786/citrix-workspace-no-audio-options-microphone-not-working
+    - name: Add pulse audio setting
+      ansible.builtin.lineinfile:
+        path: ~/ICAClient/linuxarmhf/config/module.ini
+        state: present
+        line: AudioRedirectionV4=TRUE
+        regexp: "^AudioRedirectionV4=(((F|f)(A|a)(L|l)(S|s)(E|e))|True)"
+    - name: Enable microphone
+      ansible.builtin.lineinfile:
+        path: ~/.ICAClient/wfclient.ini
+        state: present
+        line: AllowAudioInput=TRUE
+        regexp: "^AllowAudioInput=(((F|f)(A|a)(L|l)(S|s)(E|e))|True)"
+
 

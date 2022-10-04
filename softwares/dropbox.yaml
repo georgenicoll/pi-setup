@@ -1,0 +1,57 @@
+- name: Dropbox tasks
+  become: no
+  vars:
+    dropbox_file: nautilus-dropbox-2.10.0.tar.gz
+  block:
+    - name: Install required packages
+      become: yes    
+      ansible.builtin.apt:
+        state: present
+        pkg:
+        - pkg-config
+        - libnautilus-extension1a
+        - libnautilus-extension-dev
+        - python3-docutils
+
+    - name: Discern home directory
+      ansible.builtin.shell:
+        cmd: echo ~
+      register: home_dir
+
+    - name: Create directory
+      ansible.builtin.file:
+        path: "{{ home_dir.stdout }}/dropbox"
+        state: directory
+
+    - name: Download tar.bz2
+      ansible.builtin.get_url:
+        url: https://linux.dropbox.com/packages/{{ dropbox_file }}.tar.bz2
+        dest: "{{ home_dir.stdout }}/dropbox"
+      register: downloaded_file
+
+    - name: Remove the unpacked directory
+      ansible.builtin.file:
+        path: "{{ home_dir.stdout }}/dropbox/unpacked"
+        state: absent
+
+    - name: Create unpacked directory
+      ansible.builtin.file:
+        path: "{{ home_dir.stdout }}/dropbox/unpacked"
+        state: directory
+
+    - name: Unpack it
+      ansible.builtin.unarchive:
+        src: "{{ downloaded_file.dest }}"
+        dest: "{{ home_dir.stdout }}/dropbox/unpacked"
+
+    - name: Do the make thing
+      ansible.builtin.shell:
+        chdir: "{{ home_dir.stdout }}/dropbox/unpacked/{{ dropbox_file }}"
+        cmd: ./configure; make;
+
+    - name: Install
+      become: yes
+      ansible.builtin.shell:
+        chdir: "{{ home_dir.stdout }}/dropbox/unpacked/{{ dropbox_file }}"
+        cmd: make install
+

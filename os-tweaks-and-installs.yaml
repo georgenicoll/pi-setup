@@ -47,6 +47,8 @@
       - cmake
       - pi-bluetooth
       - raspi-config
+      - meld
+      - htop
 
   - name: Install Chrome (can't do this as it's only amd64, NOT arm64)
     ansible.builtin.include_tasks: 
@@ -61,17 +63,17 @@
   - name: Install i3
     ansible.builtin.include_tasks:
       file: softwares/i3.yaml
-    when: yes
+    when: no
 
   - name: Install nix
     ansible.builtin.include_tasks:
       file: softwares/nix.yaml
-    when: yes
+    when: no
       
   - name: Install nix packages
     ansible.builtin.include_tasks:
       file: softwares/nix-packages.yaml
-    when: yes
+    when: no
 
   - name: Add Chromium sync workaround
     ansible.builtin.include_tasks:
@@ -83,18 +85,18 @@
       file: softwares/citrix.yaml
     when: yes
 
-  - name: Build & Install box86
+  - name: Build & Install box(86|64)
     ansible.builtin.include_tasks:
-      file: softwares/box86.yaml
-    when: no
-
-  - name: Build & Install box64
-    ansible.builtin.include_tasks:
-      file: softwares/box64.yaml
+      file: softwares/box.yaml
     when: no
 
   - name: Zoom
     ansible.builtin.include_tasks:
       file: softwares/zoom.yaml
+    when: yes
+
+  - name: Dropbox
+    ansible.builtin.include_tasks:
+      file: softwares/dropbox.yaml
     when: yes
 

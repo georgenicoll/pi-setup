@@ -1,0 +1,76 @@
+#See https://pimylifeup.com/raspberry-pi-x86/
+- name: Dependencies for box86
+  ansible.builtin.apt:
+    pkg:
+    - gcc-arm-linux-gnueabihf
+    - libc6:armhf
+    - libncurses5:armhf
+    - libstdc++6:armhf
+
+- name: box tasks - these can take a long time!
+  become: no
+  delegate_to: localhost
+  vars:
+    #box: box86
+    #repo_version: v0.2.6
+    box: box64
+    repo_version: main
+    #repo_version: v0.1.8
+  block:
+
+    - name: Capture user home
+      ansible.builtin.shell:
+        chdir: ~
+        cmd: pwd
+      register: pwd_output
+
+    - name: Create box directory
+      ansible.builtin.file:
+        dest: ~/{{ box }}
+        state: directory
+
+    - name: Checkout box repo
+      ansible.builtin.git:
+        repo: https://github.com/ptitSeb/{{ box }}
+        dest: ~/{{ box }}
+        version: "{{ repo_version }}"
+
+    - name: Make build directory
+      ansible.builtin.file:
+        dest: ~/{{ box }}/build
+        state: directory
+
+    - name: Run cmake on box
+      ansible.builtin.shell:
+        chdir: ~/{{ box }}/build
+        cmd: cmake .. -DRPI4ARM64=1 -DCMAKE_BUILD_TYPE=RelWithDebInfo
+
+    - name: make box
+      community.general.make:
+        chdir: ~/{{ box }}/build
+        params: 
+          NUM_THREADS: 2
+      async: 3600
+      poll: 0
+      register: make_box
+
+    - name: Wait for make box
+      async_status:
+        jid: "{{ make_box.ansible_job_id }}"
+      register: make_result
+      until: make_result.finished
+      retries: 1000
+      delay: 10
+
+    - name: install box
+      become: yes
+      ansible.builtin.shell:
+        chdir: "{{ pwd_output.stdout }}/{{ box }}/build"
+        cmd: make install
+
+    - name: restart systemd-binfmt
+      become: yes
+      ansible.builtin.service:
+        name: systemd-binfmt
+        state: restarted
+

@@ -18,19 +18,21 @@
 
 - name: Install Zoom (Enable to download and install locally)
   become: no
-  when: no
+  when: yes
   delegate_to: localhost
   vars:
-    # zoom_arch: zoom_x86_64
-    # zoom_version: 5.11.10.4400
-    zoom_arch: zoom_i686
-    zoom_version: 5.4.53391.1108
+    zoom_arch: zoom_x86_64
+    zoom_version: 5.11.10.4400
+    box: BOX64
+    #zoom_arch: zoom_i686
+    #zoom_version: 5.4.53391.1108
+    #box: BOX86
     desktop_file: ~/.local/share/applications
     desktop_contents: |-
       [Desktop Entry]
       Encoding=UTF-8
       Name=Zoom (Ansible Managed)
-      Exec={{ home_directory.stdout }}/zoom/{{ zoom_arch }}/zoom/zoom %U
+      Exec={{ home_directory.stdout }}/zoom/{{ zoom_arch }}/zoom/runZoom %U
       Icon={{ home_directory.stdout }}/.local/share/applications/zoom.png
       Type=Application
       Terminal=false
@@ -38,13 +40,16 @@
       MimeType=x-scheme-handler/zoommtg;x-scheme-handler/zoomus;x-scheme-handler/tel;x-scheme-handler/callto;x-scheme-handler/zoomphonecall;application/x-zoom
       StartupWMClass=zoom
       X-KDE-Protocols=zoommtg;zoomus;tel;callto;zoomphonecall;
+    launch_script_contents: |-
+      #!/bin/bash
+      cd {{ home_directory.stdout }}/zoom/{{ zoom_arch }}/zoom
+      {{ box }}_LD_LIBRARY_PATH=./:./cef ./ZoomLauncher "$@"
 
   block:
 
     - name: Get home directory
       ansible.builtin.shell:
-        chdir: ~
-        cmd: pwd
+        cmd: echo ~
       register: home_directory
 
     - name: Make zoom directory
@@ -77,4 +82,23 @@
         content: "{{ desktop_contents }}"
         dest: "~/.local/share/applications/zoom.desktop"
         force: yes
+
+    - name: Set up embedded browser configuration
+      ansible.builtin.lineinfile:
+        path: ~/.config/zoomus.conf
+        create: true
+        line: "{{ item }}"
+        state: present
+        regex: ^{{ item }}
+      loop:
+        - "embeddedBrowserForFacebookLogin=true"
+        - "embeddedBrowserForGoogleLogin=true"
+        - "embeddedBrowserForSSOLogin=true"
+
+    - name: Create Zoom Launch File
+      ansible.builtin.copy:
+        content: "{{ launch_script_contents }}"
+        dest: ~/zoom/{{ zoom_arch }}/zoom/runZoom
+        force: yes
+        mode: a+rx,g+rx,u+rwx
 
